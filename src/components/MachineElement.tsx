@@ -6,6 +6,7 @@ interface MachineElementProps {
   machine: Machine;
   isSelected: boolean;
   zoom: number;
+  pan: { x: number; y: number };
   onSelect: (id: string) => void;
   onUpdatePosition: (id: string, position: { x: number; y: number }) => void;
   onUpdate: (id: string, updates: Partial<Machine>) => void;
@@ -19,6 +20,7 @@ const MachineElement: React.FC<MachineElementProps> = ({
   machine,
   isSelected,
   zoom,
+  pan,
   onSelect,
   onUpdatePosition,
   onUpdate,
@@ -33,7 +35,7 @@ const MachineElement: React.FC<MachineElementProps> = ({
     hostname: machine.hostname,
     privateIP: machine.privateIP
   });
-  const dragStart = useRef({ x: 0, y: 0 });
+  const dragOffset = useRef({ x: 0, y: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
 
   const getIcon = () => {
@@ -67,23 +69,30 @@ const MachineElement: React.FC<MachineElementProps> = ({
     if (isEditing) return;
     
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     onSelect(machine.id);
     
-    const rect = elementRef.current?.getBoundingClientRect();
-    if (rect) {
-      dragStart.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
+    // Calculate the offset from the mouse position to the element's position
+    // Account for zoom and pan transformations
+    const mouseX = (e.clientX - pan.x) / zoom;
+    const mouseY = (e.clientY - pan.y) / zoom;
+    
+    dragOffset.current = {
+      x: mouseX - machine.position.x,
+      y: mouseY - machine.position.y
+    };
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
     
-    const newX = (e.clientX - dragStart.current.x) / zoom;
-    const newY = (e.clientY - dragStart.current.y) / zoom;
+    // Calculate new position accounting for zoom, pan, and initial offset
+    const mouseX = (e.clientX - pan.x) / zoom;
+    const mouseY = (e.clientY - pan.y) / zoom;
+    
+    const newX = mouseX - dragOffset.current.x;
+    const newY = mouseY - dragOffset.current.y;
     
     onUpdatePosition(machine.id, { x: newX, y: newY });
   };
@@ -101,7 +110,7 @@ const MachineElement: React.FC<MachineElementProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, zoom]);
+  }, [isDragging, zoom, pan]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -144,7 +153,8 @@ const MachineElement: React.FC<MachineElementProps> = ({
       style={{
         left: machine.position.x,
         top: machine.position.y,
-        transform: `scale(${zoom})`
+        transform: `scale(${zoom})`,
+        transformOrigin: 'top left'
       }}
       onMouseDown={handleMouseDown}
     >

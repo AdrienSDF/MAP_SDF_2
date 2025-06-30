@@ -47,6 +47,7 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (confirm('Delete this connection?')) {
       onDelete(connection.id);
     }
@@ -57,12 +58,24 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
       <path
         d={path}
         stroke={activeFlow.color}
-        strokeWidth={2 / zoom}
+        strokeWidth={Math.max(2 / zoom, 1)}
         strokeDasharray={getStrokeStyle()}
         fill="none"
-        className="cursor-pointer hover:stroke-width-4 transition-all"
+        className="cursor-pointer hover:opacity-80 transition-opacity"
         onContextMenu={handleRightClick}
         title={`${connection.type} connection (right-click to delete)`}
+        style={{ pointerEvents: 'stroke' }}
+      />
+      {/* Invisible wider path for easier clicking */}
+      <path
+        d={path}
+        stroke="transparent"
+        strokeWidth={Math.max(10 / zoom, 5)}
+        fill="none"
+        className="cursor-pointer"
+        onContextMenu={handleRightClick}
+        title={`${connection.type} connection (right-click to delete)`}
+        style={{ pointerEvents: 'stroke' }}
       />
     </g>
   );
