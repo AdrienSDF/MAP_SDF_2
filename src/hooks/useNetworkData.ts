@@ -70,9 +70,20 @@ export const useNetworkData = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setData(JSON.parse(saved));
+        const parsedData = JSON.parse(saved);
+        
+        // Validate that all required properties exist and are arrays
+        const validatedData = {
+          machines: Array.isArray(parsedData.machines) ? parsedData.machines : defaultData.machines,
+          connections: Array.isArray(parsedData.connections) ? parsedData.connections : defaultData.connections,
+          flows: Array.isArray(parsedData.flows) ? parsedData.flows : defaultData.flows,
+          groups: Array.isArray(parsedData.groups) ? parsedData.groups : defaultData.groups
+        };
+        
+        setData(validatedData);
       } catch (error) {
         console.error('Failed to parse saved data:', error);
+        setData(defaultData);
       }
     }
   }, []);
