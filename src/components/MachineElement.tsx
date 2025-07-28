@@ -4,6 +4,7 @@ import { Machine } from '../types';
 
 interface MachineElementProps {
   machine: Machine;
+  groups: any[];
   isSelected: boolean;
   zoom: number;
   pan: { x: number; y: number };
@@ -18,6 +19,7 @@ interface MachineElementProps {
 
 const MachineElement: React.FC<MachineElementProps> = ({
   machine,
+  groups,
   isSelected,
   zoom,
   pan,
@@ -33,7 +35,8 @@ const MachineElement: React.FC<MachineElementProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     hostname: machine.hostname,
-    privateIP: machine.privateIP
+    privateIP: machine.privateIP,
+    groupId: machine.groupId || ''
   });
   const dragOffset = useRef({ x: 0, y: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
@@ -117,14 +120,20 @@ const MachineElement: React.FC<MachineElementProps> = ({
   };
 
   const handleSaveEdit = () => {
-    onUpdate(machine.id, editData);
+    const updates = {
+      hostname: editData.hostname,
+      privateIP: editData.privateIP,
+      groupId: editData.groupId || undefined
+    };
+    onUpdate(machine.id, updates);
     setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
     setEditData({
       hostname: machine.hostname,
-      privateIP: machine.privateIP
+      privateIP: machine.privateIP,
+      groupId: machine.groupId || ''
     });
     setIsEditing(false);
   };
@@ -207,18 +216,44 @@ const MachineElement: React.FC<MachineElementProps> = ({
         {/* Content */}
         <div className="p-3">
           {isEditing ? (
-            <input
-              type="text"
-              value={editData.privateIP}
-              onChange={(e) => setEditData(prev => ({ ...prev, privateIP: e.target.value }))}
-              className="w-full bg-gray-700 text-gray-300 text-xs rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
-            />
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={editData.privateIP}
+                onChange={(e) => setEditData(prev => ({ ...prev, privateIP: e.target.value }))}
+                className="w-full bg-gray-700 text-gray-300 text-xs rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
+                placeholder="Private IP"
+              />
+              <select
+                value={editData.groupId}
+                onChange={(e) => setEditData(prev => ({ ...prev, groupId: e.target.value }))}
+                className="w-full bg-gray-700 text-gray-300 text-xs rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
+              >
+                <option value="">No Group</option>
+                {groups.map(group => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
+            </div>
           ) : (
             <div className="text-gray-300 text-xs">{machine.privateIP}</div>
           )}
           
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500 capitalize">{machine.environment}</span>
+            
+            {/* Group indicator */}
+            {machine.groupId && !isEditing && (
+              <div className="flex items-center gap-1">
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: groups.find(g => g.id === machine.groupId)?.color || '#6B7280' }}
+                />
+                <span className="text-xs text-gray-500">
+                  {groups.find(g => g.id === machine.groupId)?.name || 'Group'}
+                </span>
+              </div>
+            )}
             
             {/* Actions */}
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

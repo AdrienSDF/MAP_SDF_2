@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Download, RotateCcw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
-import { Machine } from '../types';
+import { Plus, Download, RotateCcw, ZoomIn, ZoomOut, Maximize2, Users } from 'lucide-react';
+import { Machine, MachineGroup } from '../types';
 
 interface ToolbarProps {
   onAddMachine: (machine: Omit<Machine, 'id'>) => void;
+  onAddGroup: (group: Omit<MachineGroup, 'id'>) => void;
   onExport: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -14,6 +15,7 @@ interface ToolbarProps {
 
 const Toolbar: React.FC<ToolbarProps> = ({
   onAddMachine,
+  onAddGroup,
   onExport,
   onZoomIn,
   onZoomOut,
@@ -22,11 +24,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
   zoom
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showGroupForm, setShowGroupForm] = useState(false);
   const [formData, setFormData] = useState({
     hostname: '',
     privateIP: '',
     type: 'vm' as Machine['type'],
     environment: 'aws' as Machine['environment']
+  });
+
+  const [groupFormData, setGroupFormData] = useState({
+    name: '',
+    color: '#3B82F6'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,6 +54,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  const handleGroupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (groupFormData.name) {
+      onAddGroup({
+        ...groupFormData,
+        position: { x: 50, y: 50 },
+        size: { width: 300, height: 200 }
+      });
+      setGroupFormData({
+        name: '',
+        color: '#3B82F6'
+      });
+      setShowGroupForm(false);
+    }
+  };
+
   return (
     <>
       <div className="fixed top-4 left-4 bg-gray-800 rounded-lg shadow-lg p-3 z-50">
@@ -57,6 +81,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
           >
             <Plus className="w-4 h-4" />
             Add Machine
+          </button>
+          
+          <button
+            onClick={() => setShowGroupForm(true)}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            title="Create Group"
+          >
+            <Users className="w-4 h-4" />
+            Create Group
           </button>
           
           <div className="w-px h-6 bg-gray-600" />
@@ -199,6 +232,67 @@ const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )}
     </>
+      {/* Add Group Modal */}
+      {showGroupForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-96">
+            <h3 className="text-lg font-semibold text-white mb-4">Create New Group</h3>
+            
+            <form onSubmit={handleGroupSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Group Name
+                </label>
+                <input
+                  type="text"
+                  value={groupFormData.name}
+                  onChange={(e) => setGroupFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="e.g., Web Servers, Database Cluster"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Group Color
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="color"
+                    value={groupFormData.color}
+                    onChange={(e) => setGroupFormData(prev => ({ ...prev, color: e.target.value }))}
+                    className="w-12 h-8 bg-gray-700 border border-gray-600 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={groupFormData.color}
+                    onChange={(e) => setGroupFormData(prev => ({ ...prev, color: e.target.value }))}
+                    className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="#3B82F6"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
+                >
+                  Create Group
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGroupForm(false)}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
   );
 };
 

@@ -1,16 +1,22 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Machine, Connection } from '../types';
+import { Machine, Connection, MachineGroup } from '../types';
 import MachineElement from './MachineElement';
+import GroupElement from './GroupElement';
 import ConnectionLine from './ConnectionLine';
 
 interface NetworkCanvasProps {
   machines: Machine[];
   connections: Connection[];
+  groups: MachineGroup[];
   flows: any[];
   viewState: any;
   onUpdateViewState: (updates: any) => void;
   onUpdateMachine: (id: string, updates: Partial<Machine>) => void;
+  onUpdateGroup: (id: string, updates: Partial<MachineGroup>) => void;
+  onUpdateGroupPosition: (id: string, position: { x: number; y: number }) => void;
+  onUpdateGroupSize: (id: string, size: { width: number; height: number }) => void;
   onDeleteMachine: (id: string) => void;
+  onDeleteGroup: (id: string) => void;
   onAddConnection: (connection: Omit<Connection, 'id'>) => void;
   onDeleteConnection: (id: string) => void;
 }
@@ -18,11 +24,16 @@ interface NetworkCanvasProps {
 const NetworkCanvas: React.FC<NetworkCanvasProps> = ({
   machines,
   connections,
+  groups,
   flows,
   viewState,
   onUpdateViewState,
   onUpdateMachine,
+  onUpdateGroup,
+  onUpdateGroupPosition,
+  onUpdateGroupSize,
   onDeleteMachine,
+  onDeleteGroup,
   onAddConnection,
   onDeleteConnection
 }) => {
@@ -227,11 +238,28 @@ const NetworkCanvas: React.FC<NetworkCanvasProps> = ({
           ))}
         </svg>
 
+        {/* Groups */}
+        {groups.map(group => (
+          <GroupElement
+            key={group.id}
+            group={group}
+            isSelected={viewState.selectedMachine === group.id}
+            zoom={viewState.zoom}
+            pan={viewState.pan}
+            onSelect={(id) => onUpdateViewState({ selectedMachine: id })}
+            onUpdatePosition={onUpdateGroupPosition}
+            onUpdateSize={onUpdateGroupSize}
+            onUpdate={onUpdateGroup}
+            onDelete={onDeleteGroup}
+          />
+        ))}
+
         {/* Machines */}
         {machines.map(machine => (
           <MachineElement
             key={machine.id}
             machine={machine}
+            groups={groups}
             isSelected={viewState.selectedMachine === machine.id}
             zoom={viewState.zoom}
             pan={viewState.pan}

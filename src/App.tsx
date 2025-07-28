@@ -14,6 +14,9 @@ function App() {
     deleteMachine,
     addConnection,
     deleteConnection,
+    addGroup,
+    updateGroup,
+    deleteGroup,
     toggleFlow,
     exportData
   } = useNetworkData();
@@ -31,8 +34,8 @@ function App() {
 
   // Fit to screen on initial load
   useEffect(() => {
-    if (data.machines.length > 0) {
-      setTimeout(() => fitToScreen(data.machines), 100);
+    if (data.machines.length > 0 || data.groups.length > 0) {
+      setTimeout(() => fitToScreen([...data.machines, ...data.groups]), 100);
     }
   }, []);
 
@@ -41,22 +44,28 @@ function App() {
       <NetworkCanvas
         machines={data.machines}
         connections={data.connections}
+        groups={data.groups}
         flows={data.flows}
         viewState={viewState}
         onUpdateViewState={updateViewState}
         onUpdateMachine={updateMachine}
+        onUpdateGroup={updateGroup}
+        onUpdateGroupPosition={(id, position) => updateGroup(id, { position })}
+        onUpdateGroupSize={(id, size) => updateGroup(id, { size })}
         onDeleteMachine={deleteMachine}
+        onDeleteGroup={deleteGroup}
         onAddConnection={addConnection}
         onDeleteConnection={deleteConnection}
       />
       
       <Toolbar
         onAddMachine={addMachine}
+        onAddGroup={addGroup}
         onExport={exportData}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
-        onFitToScreen={() => fitToScreen(data.machines)}
+        onFitToScreen={() => fitToScreen([...data.machines, ...data.groups])}
         zoom={viewState.zoom}
       />
       

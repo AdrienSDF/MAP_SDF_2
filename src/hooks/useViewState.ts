@@ -37,10 +37,29 @@ export const useViewState = () => {
     if (machines.length === 0) return;
     
     const padding = 100;
-    const minX = Math.min(...machines.map(m => m.position.x)) - padding;
-    const maxX = Math.max(...machines.map(m => m.position.x)) + padding;
-    const minY = Math.min(...machines.map(m => m.position.y)) - padding;
-    const maxY = Math.max(...machines.map(m => m.position.y)) + padding;
+    
+    // Calculate bounds for both machines and groups
+    const bounds = machines.reduce((acc, item) => {
+      const itemWidth = item.size ? item.size.width : 160; // Default machine width
+      const itemHeight = item.size ? item.size.height : 100; // Default machine height
+      
+      acc.minX = Math.min(acc.minX, item.position.x);
+      acc.maxX = Math.max(acc.maxX, item.position.x + itemWidth);
+      acc.minY = Math.min(acc.minY, item.position.y);
+      acc.maxY = Math.max(acc.maxY, item.position.y + itemHeight);
+      
+      return acc;
+    }, {
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity
+    });
+    
+    const minX = bounds.minX - padding;
+    const maxX = bounds.maxX + padding;
+    const minY = bounds.minY - padding;
+    const maxY = bounds.maxY + padding;
     
     const width = maxX - minX;
     const height = maxY - minY;

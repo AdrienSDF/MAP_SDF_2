@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NetworkTopology, Machine, Connection, NetworkFlow } from '../types';
+import { NetworkTopology, Machine, Connection, NetworkFlow, MachineGroup } from '../types';
 
 const STORAGE_KEY = 'network-topology-data';
 
@@ -59,7 +59,8 @@ const defaultData: NetworkTopology = {
     { id: 'vpn', name: 'VPN Connections', enabled: true, color: '#F7931E' },
     { id: 'internal', name: 'Internal Network', enabled: true, color: '#FFD23F' },
     { id: 'internet', name: 'Internet Access', enabled: false, color: '#06FFA5' }
-  ]
+  ],
+  groups: []
 };
 
 export const useNetworkData = () => {
@@ -142,6 +143,36 @@ export const useNetworkData = () => {
     saveData(newData);
   };
 
+  const addGroup = (group: Omit<MachineGroup, 'id'>) => {
+    const newGroup: MachineGroup = {
+      ...group,
+      id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    const newData = {
+      ...data,
+      groups: [...data.groups, newGroup]
+    };
+    saveData(newData);
+  };
+
+  const updateGroup = (id: string, updates: Partial<MachineGroup>) => {
+    const newData = {
+      ...data,
+      groups: data.groups.map(g => g.id === id ? { ...g, ...updates } : g)
+    };
+    saveData(newData);
+  };
+
+  const deleteGroup = (id: string) => {
+    const newData = {
+      ...data,
+      groups: data.groups.filter(g => g.id !== id),
+      machines: data.machines.map(m => m.groupId === id ? { ...m, groupId: undefined } : m)
+    };
+    saveData(newData);
+  };
+
   const exportData = () => {
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -160,6 +191,9 @@ export const useNetworkData = () => {
     deleteMachine,
     addConnection,
     deleteConnection,
+    addGroup,
+    updateGroup,
+    deleteGroup,
     toggleFlow,
     exportData,
     saveData

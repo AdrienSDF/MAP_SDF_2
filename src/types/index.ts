@@ -5,6 +5,7 @@ export interface Machine {
   type: 'vm' | 'physical' | 'cloud';
   position: { x: number; y: number };
   environment: 'aws' | 'ovh' | 'onprem';
+  groupId?: string;
 }
 
 export interface Connection {
@@ -22,10 +23,19 @@ export interface NetworkFlow {
   color: string;
 }
 
+export interface MachineGroup {
+  id: string;
+  name: string;
+  color: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+}
+
 export interface NetworkTopology {
   machines: Machine[];
   connections: Connection[];
   flows: NetworkFlow[];
+  groups: MachineGroup[];
 }
 
 export interface ViewState {
