@@ -231,7 +231,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </div>
         </div>
       )}
-    </>
       {/* Add Group Modal */}
       {showGroupForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -293,6 +292,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </div>
         </div>
       )}
+    </>
   );
 };
 
